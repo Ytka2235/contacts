@@ -1,8 +1,11 @@
 package com.example.contacts;
 
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.content.Context;
+import android.widget.SimpleCursorAdapter;
 
 public class DataBaseAccessor extends SQLiteOpenHelper
 {
@@ -33,9 +36,8 @@ public class DataBaseAccessor extends SQLiteOpenHelper
         db.execSQL("CREATE TABLE users (" + COLUMN_ID
                 + " INTEGER PRIMARY KEY AUTOINCREMENT," + COLUMN_NAME
                 + " TEXT, " + COLUMN_NEMBER + " INTEGER);");
-        // добавление начальных данных
-        //db.execSQL("INSERT INTO "+ TABLE +" (" + COLUMN_NAME
-        //        + ", " + COLUMN_YEAR  + ") VALUES ('Том Смит', 1981);");
+        AddContact(db);
+
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion,  int newVersion)
@@ -43,7 +45,37 @@ public class DataBaseAccessor extends SQLiteOpenHelper
 
     }
 
+    public void AddContact(SQLiteDatabase db)
+    {
+        db.execSQL("INSERT INTO "+ TABLE +" (" + COLUMN_NAME
+                        + ", " + COLUMN_NEMBER  + ") VALUES (name, nember);");
+    }
 
+    public void TransformContact(SQLiteDatabase db, int id, String name, int nember)
+    {
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_NAME,name);
+        cv.put(COLUMN_NEMBER, nember);
+        db.update(TABLE, cv, COLUMN_ID + "=" + id, null);
+    }
+
+    public void DeleteContact(SQLiteDatabase db, int id)
+    {
+        db.delete(TABLE, "_id = ?", new String[]{String.valueOf(id)});
+    }
+
+    public SimpleCursorAdapter getCursorAdapter(Context context, int layout, int[] viewIds)
+    {
+        // запрос данных для отображения
+        Cursor cursor = getReadableDatabase().rawQuery("SELECT * FROM " + TABLE,null);
+
+        // какие столбцы и в каком порядке показывать в listview
+        String[] columns = new  String[] {COLUMN_ID,COLUMN_NAME,COLUMN_NEMBER};
+
+        // создание адаптера
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(context,layout,cursor,columns,viewIds,0);
+        return  adapter;
+    }
 
 }
 
